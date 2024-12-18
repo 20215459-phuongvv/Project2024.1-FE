@@ -62,7 +62,7 @@ export default function BorrowBookManagement() {
           <Row justify="space-between" align="middle" style={{ height: "100%" }}>
             <Col>
               <Typography.Title style={{ color: "#1890ff", margin: 0, fontSize: "24px" }}>
-                Thư Viện ABC
+                HUSTUDY
               </Typography.Title>
             </Col>
             <Col>
