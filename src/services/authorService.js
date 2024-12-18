@@ -11,7 +11,7 @@ export const getAllAuthors = async (page = 1, size = 5, name = "") => {
     const response = await axios.get(`${API_URL}/authors`, {
       params: { page, size, name },
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: token ? `Bearer ${token}` : null,
       },
     });
 

@@ -28,7 +28,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
   const [publishers, setPublishers] = useState([]);
   const [selectedAuthorId, setSelectedAuthorId] = useState(null);
   const [selectedPublisherId, setSelectedPublisherId] = useState(null);
-  const [selectedAvailability, setSelectedAvailability] = useState(null); // Added availability filter state
+  const [selectedAvailability, setSelectedAvailability] = useState(null);
   const [selectedIsSubscribe, setSelectedIsSubscribe] = useState(null);
   const pageSize = 8;
 
@@ -92,7 +92,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
     selectedPublisherId,
     selectedAvailability,
     selectedIsSubscribe,
-  ]); // Fetch books when currentPage, author, publisher, or availability filters change
+  ]);
 
   const handleBookSelect = (book) => {
     if (book.isAvailable) {
@@ -101,6 +101,13 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
   };
 
   const handleBorrowBook = async () => {
+    // Kiểm tra người dùng đã đăng nhập chưa
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      message.warning("Bạn cần đăng nhập trước khi mượn sách!");
+      return;
+    }
+
     if (!selectedBook) {
       message.error("Vui lòng chọn một sách để mượn!");
       return;
@@ -122,7 +129,15 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
       message.error("Lỗi khi mượn sách");
     }
   };
+
   const handleSubscribe = async (bookId) => {
+    // Kiểm tra người dùng đã đăng nhập chưa
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      message.warning("Bạn cần đăng nhập trước khi đăng ký nhận tin!");
+      return;
+    }
+
     try {
       await subscribeToBook(bookId);
       message.success("Đăng ký nhận thông báo thành công!");
@@ -133,6 +148,13 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
   };
 
   const handleUnsubscribe = async (bookId) => {
+    // Kiểm tra người dùng đã đăng nhập chưa
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      message.warning("Bạn cần đăng nhập trước khi hủy đăng ký nhận tin!");
+      return;
+    }
+
     try {
       await unSubscribeToBook(bookId);
       message.success("Hủy đăng ký nhận thông báo thành công!");
@@ -141,6 +163,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
       message.error("Lỗi khi hủy đăng ký nhận thông báo.");
     }
   };
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -256,7 +279,6 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
             <Button
               type="primary"
               onClick={handleBorrowBook}
-              disabled={!selectedBook || borrowDays < 1 || borrowDays > 45}
               style={{ height: "40px" }}
             >
               Xác Nhận Mượn Sách
@@ -270,8 +292,8 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                   style={{
                     border:
                       selectedBook?.id === book.id ? "2px solid blue" : "",
-                    opacity: book.isAvailable ? 1 : 0.5, // Make unavailable books faded
-                    cursor: book.isAvailable ? "pointer" : "not-allowed", // Disable click for unavailable books
+                    opacity: book.isAvailable ? 1 : 0.5,
+                    cursor: book.isAvailable ? "pointer" : "not-allowed",
                   }}
                   cover={
                     <img
@@ -281,7 +303,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                       }
                     />
                   }
-                  onClick={() => handleBookSelect(book)} // Only handle click for available books
+                  onClick={() => handleBookSelect(book)}
                 >
                   <Card.Meta
                     title={book.title}
@@ -327,7 +349,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
           <Pagination
             current={currentPage}
             pageSize={pageSize}
-            total={totalBooks} // Correct total for pagination
+            total={totalBooks}
             onChange={handlePageChange}
             style={{ marginTop: 20, textAlign: "center" }}
           />

@@ -8,22 +8,23 @@ import {
   MdLibraryBooks,
   MdCardMembership,
   MdLock,
-  MdAccountCircle, // Icon for the Personal Page
-  MdPersonAdd, // Icon for the Register page
+  MdAccountCircle,
+  MdPersonAdd,
+  MdSettings, // Icon for the Settings tab
 } from "react-icons/md";
 
 import MainDashboard from "views/admin/default";
 import SignInCentered from "views/auth/signIn";
-import SignUp from "views/auth/signUp"; // New component for Sign Up (Register)
-import Book from "views/admin/books"; // New component for Books
-import Author from "views/admin/authors"; // New component for Authors
-import Publisher from "views/admin/publishers"; // New component for Publishers
-import ReadingCard from "views/admin/readingCards"; // New component for Borrow Books
-import BorrowBook from "views/admin/borrowBooks"; // New component for Borrow Card
-import Profile from "views/admin/profile"; // New component for Personal Page
-
-// Import the new component for user borrowed books management
-import UserBorrowedBooks from "views/admin/userBorrowBooks"; // New component for User Borrowed Books
+import SignUp from "views/auth/signUp";
+import Book from "views/admin/books";
+import Author from "views/admin/authors";
+import Publisher from "views/admin/publishers";
+import ReadingCard from "views/admin/readingCards";
+import BorrowBook from "views/admin/borrowBooks";
+import BorrowBookAuth from "views/auth/userBorrowBooks";
+import Profile from "views/admin/profile";
+import UserBorrowedBooks from "views/admin/userBorrowBooks";
+import Settings from "views/admin/setting"; // New component for Settings
 
 const routes = [
   {
@@ -57,11 +58,20 @@ const routes = [
   {
     name: "Mượn sách",
     layout: "/admin",
-    path: "/borrow-books",
+    path: "/borrow-books-admin",
     icon: (
       <Icon as={MdLibraryBooks} width="20px" height="20px" color="inherit" />
     ),
     component: BorrowBook,
+  },
+  {
+    name: "Mượn sách",
+    layout: "/auth",
+    path: "/borrow-books",
+    icon: (
+      <Icon as={MdLibraryBooks} width="20px" height="20px" color="inherit" />
+    ),
+    component: BorrowBookAuth,
   },
   {
     name: "Thẻ mượn sách",
@@ -79,7 +89,6 @@ const routes = [
     icon: <Icon as={MdLock} width="20px" height="20px" color="inherit" />,
     component: SignInCentered,
   },
-  // New route for Register (SignUp)
   {
     name: "Đăng ký",
     layout: "/auth",
@@ -87,7 +96,6 @@ const routes = [
     icon: <Icon as={MdPersonAdd} width="20px" height="20px" color="inherit" />,
     component: SignUp,
   },
-  // New route for personal page
   {
     name: "Trang Cá Nhân",
     layout: "/admin",
@@ -97,15 +105,22 @@ const routes = [
     ),
     component: Profile,
   },
-  // New route for managing borrowed books for the user
   {
     name: "Quản lý mượn sách",
-    layout: "/admin", // Assuming your user-related routes are prefixed with '/user'
+    layout: "/admin",
     path: "/user-borrowed-books",
     icon: (
       <Icon as={MdLibraryBooks} width="20px" height="20px" color="inherit" />
     ),
-    component: UserBorrowedBooks, // The new component for managing borrowed books
+    component: UserBorrowedBooks,
+  },
+  // New route for Settings
+  {
+    name: "Cài đặt",
+    layout: "/admin",
+    path: "/settings",
+    icon: <Icon as={MdSettings} width="20px" height="20px" color="inherit" />,
+    component: Settings, // The new component for settings
   },
 ];
 

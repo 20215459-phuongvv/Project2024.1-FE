@@ -44,7 +44,7 @@ const PrivateRoute = ({ component: Component, ...rest }) => {
     <Route
       {...rest}
       render={(props) =>
-        user ? <Component {...props} /> : <Redirect to="/auth/sign-in" />
+        user ? <Component {...props} /> : <Redirect to="/auth/borrow-books" />
       }
     />
   );

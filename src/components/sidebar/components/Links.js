@@ -48,9 +48,10 @@ export function SidebarLinks(props) {
             "/books",
             "/authors",
             "/publishers",
-            "/borrow-books",
+            "/borrow-books-admin",
             "/reading-cards",
             "/profile",
+            "/settings",
           ].includes(route.path)
         ) {
           return null;

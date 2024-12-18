@@ -22,7 +22,7 @@ export default function Dashboard(props) {
   };
 
   const getActiveRoute = (routes) => {
-    let activeRoute = "Default Brand Text";
+    let activeRoute = "Bạn không có quyền truy cập";
     for (let i = 0; i < routes.length; i++) {
       if (routes[i].collapse) {
         let collapseActiveRoute = getActiveRoute(routes[i].items);
@@ -111,9 +111,10 @@ export default function Dashboard(props) {
           "/books",
           "/authors",
           "/publishers",
-          "/borrow-books",
+          "/borrow-books-admin",
           "/reading-cards",
           "/profile",
+          "/settings",
         ].includes(route.path);
       }
       return false; // Default: no routes

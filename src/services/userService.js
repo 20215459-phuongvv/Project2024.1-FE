@@ -9,11 +9,27 @@ export const getAllBooks = async (
   title = "",
   authorId,
   publisherId,
-  isAvailable
+  isAvailable,
+  isSubscribe
 ) => {
   try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user ? user.jwt : null;
+
     const response = await axios.get(`${API_URL}/books`, {
-      params: { page, size, title, authorId, publisherId, isAvailable },
+      params: {
+        page,
+        size,
+        title,
+        authorId,
+        publisherId,
+        isAvailable,
+        isSubscribe,
+      },
+      headers: {
+        Authorization: token ? `Bearer ${token}` : null,
+        "Content-Type": "application/json",
+      },
     });
     return response.data; // Assuming response data has books and pagination details
   } catch (error) {
@@ -98,6 +114,7 @@ export const changePassword = async (password, newPassword) => {
     throw error;
   }
 };
+
 export const getCardInfo = async () => {
   try {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -116,6 +133,7 @@ export const getCardInfo = async () => {
     throw error;
   }
 };
+
 export const registerReadingCard = async (data) => {
   try {
     const user = JSON.parse(localStorage.getItem("user"));

@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Tabs, Card, Row, Col, Typography, Spin } from "antd";
-import { getAllUserBorrowedBooks } from "services/borrowBookService"; // Assuming this is the correct API import
-import { getAllBooks } from "services/userService";
+import {
+  getAllUserBorrowedBooks,
+  getBorrowLimit,
+} from "services/borrowBookService"; // Assuming this is the correct API import
 import RegisterBorrowBook from "./RegisterBorrowBook";
 import BorrowHistory from "./BorrowHistory";
 
@@ -15,6 +17,7 @@ export default function BorrowBookManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(6);
+  const [borrowLimit, setBorrowLimit] = useState(null); // New state for borrow limit
 
   // Fetch borrowed books with page and size
   const fetchBorrowedBooks = useCallback(
@@ -33,9 +36,21 @@ export default function BorrowBookManagement() {
     [currentPage, limit, searchTerm]
   );
 
+  // Fetch borrow limit
+  const fetchBorrowLimit = useCallback(async () => {
+    try {
+      const response = await getBorrowLimit();
+      const { data } = response;
+      setBorrowLimit(data.value); // Set the borrow limit from the API response
+    } catch (error) {
+      console.error("Lỗi khi lấy giới hạn mượn sách:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchBorrowedBooks(searchTerm, currentPage);
-  }, [fetchBorrowedBooks, currentPage, searchTerm]);
+    fetchBorrowLimit(); // Call the API to get the borrow limit
+  }, [fetchBorrowedBooks, currentPage, searchTerm, fetchBorrowLimit]);
 
   // Handle pagination change
   const handlePageChange = (page, pageSize) => {
@@ -53,6 +68,13 @@ export default function BorrowBookManagement() {
           <Text style={{ fontSize: "22px", fontWeight: 700 }}>
             Quản Lý Mượn Sách
           </Text>
+          {borrowLimit !== null ? (
+            <Text style={{ fontSize: "16px", color: "#595959" }}>
+              Giới hạn mượn sách: <strong>{borrowLimit}</strong> sách
+            </Text>
+          ) : (
+            <Spin size="small" />
+          )}
         </Row>
 
         <Tabs defaultActiveKey="1" style={{ width: "100%" }}>

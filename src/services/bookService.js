@@ -92,3 +92,45 @@ export const deleteBooks = async (idList) => {
     throw error;
   }
 };
+export const subscribeToBook = async (bookId) => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user ? user.jwt : null;
+
+    const response = await axios.post(
+      `${API_URL}/api/notifications/subscribe`,
+      { bookId }, // Payload body with bookId
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data; // Return API response
+  } catch (error) {
+    console.error("Error subscribing to book notifications:", error);
+    throw error;
+  }
+};
+export const unSubscribeToBook = async (bookId) => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user ? user.jwt : null;
+
+    const response = await axios.delete(`${API_URL}/api/notifications/unsubscribe`, {
+      data: { bookId },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+
+    return response.data; // Return API response
+  } catch (error) {
+    console.error("Error subscribing to book notifications:", error);
+    throw error;
+  }
+};

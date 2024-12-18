@@ -7,7 +7,15 @@ import {
   useColorModeValue,
   Text,
 } from "@chakra-ui/react";
-import { Table, Pagination, Input, Button, message, Popconfirm } from "antd"; // Import Popconfirm
+import {
+  Table,
+  Pagination,
+  Input,
+  Button,
+  message,
+  Popconfirm,
+  Select,
+} from "antd"; // Import Popconfirm
 import React, { useEffect, useState, useCallback } from "react";
 import {
   getAllBorrowedBooks,
@@ -21,7 +29,13 @@ export default function BorrowBookManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchParams, setSearchParams] = useState({
+    search: "",
+    status: null,
+    isLate: null,
+    bookName: "",
+    userEmail: "",
+  });
   const limit = 10;
   const textColor = useColorModeValue("secondaryGray.900", "white");
 
@@ -31,43 +45,48 @@ export default function BorrowBookManagement() {
     onClose: onCreateClose,
   } = useDisclosure();
 
-  // Fetch danh sách sách mượn (Borrowed Books)
-  const fetchBorrowedBooks = useCallback(
-    async (search = searchTerm, page = currentPage) => {
-      setLoading(true);
-      try {
-        const response = await getAllBorrowedBooks(page - 1, limit, search);
-        const { data, meta } = response;
-        setBorrowedBooks(data);
-        setTotalPages(Math.ceil(meta.total / limit));
-      } catch (error) {
-        console.error("Lỗi khi lấy danh sách sách mượn:", error);
-      }
-      setLoading(false);
-    },
-    [currentPage, limit]
-  );
+  // Fetch borrowed books based on search parameters
+  const fetchBorrowedBooks = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await getAllBorrowedBooks(
+        currentPage - 1,
+        limit,
+        searchParams
+      );
+      const { data, meta } = response;
+      setBorrowedBooks(data);
+      setTotalPages(Math.ceil(meta.total / limit));
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách sách mượn:", error);
+    }
+    setLoading(false);
+  }, [currentPage, searchParams]);
 
-  // Debounce cho tìm kiếm
+  // Debounce search input to optimize API requests
   const debouncedFetchBorrowedBooks = useCallback(
-    debounce((value) => {
-      setCurrentPage(1);
-      fetchBorrowedBooks(value, 1);
-    }, 800),
+    debounce(() => fetchBorrowedBooks(), 800),
     [fetchBorrowedBooks]
   );
 
-  // Fetch danh sách sách mượn khi component mount hoặc khi thay đổi phân trang
+  // Fetch borrowed books when component mounts or searchParams/state changes
   useEffect(() => {
-    fetchBorrowedBooks(searchTerm, currentPage);
+    fetchBorrowedBooks();
   }, [fetchBorrowedBooks, currentPage]);
 
-  // Hàm xử lý khi trả sách
+  const handleSearchParamChange = (key, value) => {
+    setSearchParams((prevParams) => {
+      const updatedParams = { ...prevParams, [key]: value };
+      return updatedParams;
+    });
+  };
+
+  // Handle returning borrowed book
   const handleReturnBook = async (id) => {
     try {
       await returnBorrowedBook(id);
       message.success("Trả sách thành công");
-      fetchBorrowedBooks(); // Lấy lại danh sách sách sau khi trả
+      fetchBorrowedBooks(); // Lấy lại danh sách sau khi trả sách
     } catch (error) {
       message.error("Lỗi khi trả sách");
     }
@@ -79,44 +98,44 @@ export default function BorrowBookManagement() {
 
   const columns = [
     {
-      title: "Người mượn",
-      dataIndex: "user", // Truy cập vào book.title
+      title: "Người Mượn",
+      dataIndex: "user",
       key: "user",
       render: (text, record) => (
         <span>
-          {record.readingCard.user.name} - {record.readingCard.user.phone}
+          {record.readingCard.user.name} - {record.readingCard.user.email}
         </span>
-      ), // Hiển thị tên sách
+      ),
     },
     {
       title: "Tên Sách",
-      dataIndex: "title", // Truy cập vào book.title
+      dataIndex: "title",
       key: "title",
-      render: (text, record) => <span>{record.book.title}</span>, // Hiển thị tên sách
+      render: (text, record) => <span>{record.book.title}</span>,
     },
     {
-      title: "Tên Tác Giả",
-      dataIndex: "book.author.name", // Truy cập vào book.author.name
+      title: "Tác Giả",
+      dataIndex: "book.author.name",
       key: "book.author.name",
       render: (text, record) => <span>{record.book.author.name}</span>,
     },
     {
       title: "Nhà Xuất Bản",
-      dataIndex: "book.publisher.name", // Truy cập vào book.publisher.name
+      dataIndex: "book.publisher.name",
       key: "book.publisher.name",
       render: (text, record) => <span>{record.book.publisher.name}</span>,
     },
     {
       title: "Ngày Mượn",
-      dataIndex: "borrowDate", // Truy cập vào borrowDate
+      dataIndex: "borrowDate",
       key: "borrowDate",
-      render: (text) => <span>{new Date(text).toLocaleDateString()}</span>, // Hiển thị ngày mượn, chuyển đổi sang định dạng ngày dễ đọc
+      render: (text) => <span>{new Date(text).toLocaleDateString()}</span>,
     },
     {
       title: "Ngày Trả",
-      dataIndex: "returnDate", // Truy cập vào returnDate
+      dataIndex: "returnDate",
       key: "returnDate",
-      render: (text) => <span>{new Date(text).toLocaleDateString()}</span>, // Hiển thị ngày hết hạn, chuyển đổi sang định dạng ngày dễ đọc
+      render: (text) => <span>{new Date(text).toLocaleDateString()}</span>,
     },
     {
       title: "Số Ngày Quá Hạn",
@@ -126,32 +145,24 @@ export default function BorrowBookManagement() {
         overDueDays !== null ? overDueDays : "Không có",
     },
     {
-      title: "Trễ Hạn",
-      dataIndex: "isLate", // Truy cập vào isLate
+      title: "Trạng Thái Trễ Hạn",
+      dataIndex: "isLate",
       key: "isLate",
       render: (isLate) => (
-        <span
-          style={{
-            color: isLate ? "red" : "green", // Nếu trễ thì màu đỏ, nếu đúng hạn thì màu xanh
-            fontWeight: "bold",
-          }}
-        >
-          {isLate ? "Trễ" : "Đúng Hạn"}{" "}
+        <span style={{ color: isLate ? "red" : "green", fontWeight: "bold" }}>
+          {isLate ? "Trễ Hạn" : "Đúng Hạn"}
         </span>
       ),
     },
     {
       title: "Trạng Thái",
-      dataIndex: "status", // Truy cập vào isLate
+      dataIndex: "status",
       key: "status",
       render: (status) => (
         <span
-          style={{
-            color: status === 0 ? "red" : "green", // Nếu trễ thì màu đỏ, nếu đúng hạn thì màu xanh
-            fontWeight: "bold",
-          }}
+          style={{ color: status === 0 ? "red" : "green", fontWeight: "bold" }}
         >
-          {status === 0 ? "Chưa trả" : "Đã trả"}{" "}
+          {status === 0 ? "Chưa Trả" : "Đã Trả"}
         </span>
       ),
     },
@@ -161,12 +172,10 @@ export default function BorrowBookManagement() {
       align: "center",
       render: (text, record) => (
         <div style={{ display: "flex", justifyContent: "center" }}>
-          {/* Check if the book is returned (status === 0 means not returned) */}
           {record.status === 0 ? (
-            // If the book is not returned, show "Đã Trả Sách" button without onClick
             <Popconfirm
-              title="Bạn có chắc chắn người dùng đã trả sách này?"
-              onConfirm={() => handleReturnBook(record.id)} // Call handleReturnBook if confirmed
+              title="Bạn có chắc chắn sách này đã được trả?"
+              onConfirm={() => handleReturnBook(record.id)}
               okText="Có"
               cancelText="Không"
             >
@@ -178,11 +187,10 @@ export default function BorrowBookManagement() {
                   color: "white",
                 }}
               >
-                Đánh dấu trả sách
+                Đánh Dấu Đã Trả
               </Button>
             </Popconfirm>
           ) : (
-            // If the book has been returned, show "Đánh dấu trả sách" button
             <Button
               style={{
                 marginLeft: "10px",
@@ -191,7 +199,7 @@ export default function BorrowBookManagement() {
                 color: "white",
               }}
             >
-              Người dùng đã trả sách
+              Sách Đã Trả
             </Button>
           )}
         </div>
@@ -219,18 +227,43 @@ export default function BorrowBookManagement() {
         </Flex>
         <Flex justifyContent="space-between" mb="20px">
           <Input
-            placeholder="Tìm kiếm sách mượn..."
+            placeholder="Tên Sách"
             allowClear
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              debouncedFetchBorrowedBooks(e.target.value);
-            }}
-            style={{ width: "40%" }}
+            value={searchParams.bookName}
+            onChange={(e) =>
+              handleSearchParamChange("bookName", e.target.value)
+            }
+            style={{ width: "25%", marginRight: "10px", height: "40px" }}
           />
-          <ChakraButton colorScheme="brand" onClick={onCreateOpen}>
-            Thêm Mới
-          </ChakraButton>
+          <Input
+            placeholder="Email Người Mượn"
+            allowClear
+            value={searchParams.userEmail}
+            onChange={(e) =>
+              handleSearchParamChange("userEmail", e.target.value)
+            }
+            style={{ width: "25%", marginRight: "10px", height: "40px" }}
+          />
+          <Select
+            placeholder="Chọn Trạng Thái"
+            value={searchParams.status}
+            onChange={(value) => handleSearchParamChange("status", value)}
+            style={{ width: "25%", marginRight: "10px", height: "40px" }}
+            allowClear
+          >
+            <Select.Option value={0}>Chưa Trả</Select.Option>
+            <Select.Option value={1}>Đã Trả</Select.Option>
+          </Select>
+          <Select
+            placeholder="Chọn Trạng Thái Trễ Hạn"
+            value={searchParams.isLate}
+            onChange={(value) => handleSearchParamChange("isLate", value)}
+            style={{ width: "25%", height: "40px" }}
+            allowClear
+          >
+            <Select.Option value={true}>Trễ</Select.Option>
+            <Select.Option value={false}>Đúng Hạn</Select.Option>
+          </Select>
         </Flex>
 
         {loading ? (
