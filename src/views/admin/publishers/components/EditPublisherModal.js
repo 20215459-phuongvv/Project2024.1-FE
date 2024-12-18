@@ -102,14 +102,14 @@ export default function EditPublisherModal({
           Trạng Thái Nhà Xuất Bản:
         </label>
         <Switch
-          checked={editPublisher.status}
+          checked={editPublisher.status === 1}
           onChange={
             (checked) =>
               setEditPublisher({ ...editPublisher, status: checked ? 1 : 0 }) // 1 for active, 0 for inactive
           }
           style={{ marginRight: "8px" }}
         />
-        <Text>{editPublisher.status ? "Hoạt Động" : "Ngừng Hoạt Động"}</Text>
+        <Text>{editPublisher.status === 1 ? "Hoạt Động" : "Ngừng Hoạt Động"}</Text>
       </div>
 
       <div style={{ textAlign: "right" }}>

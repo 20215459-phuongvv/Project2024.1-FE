@@ -7,8 +7,11 @@ import {
   Select,
   message,
   Typography,
+  Upload,
 } from "antd";
 import { addBook } from "services/bookService";
+import { UploadOutlined } from "@ant-design/icons";
+
 const { Text } = Typography;
 
 export default function CreateBookModal({
@@ -19,11 +22,12 @@ export default function CreateBookModal({
   publishers, // List of publishers passed from parent
 }) {
   const [newBook, setNewBook] = useState({
-    authorId: "", // Default to the first author in the list
-    publisherId: "", // Default to the first publisher
+    authorId: "",
+    publisherId: "",
     title: "",
     isAvailable: true,
-    type: 0, // Default to normal type (0)
+    type: 0,
+    thumbnail: null, // New field for thumbnail
   });
 
   const [loading, setLoading] = useState(false);
@@ -31,11 +35,12 @@ export default function CreateBookModal({
     title: "",
     authorId: "",
     publisherId: "",
+    thumbnail: "",
   });
 
   const handleSubmit = async () => {
     let valid = true;
-    const newErrors = { title: "", authorId: "", publisherId: "" };
+    const newErrors = { title: "", authorId: "", publisherId: "", thumbnail: "" };
 
     if (!newBook.title) {
       newErrors.title = "Vui lòng nhập tên sách.";
@@ -52,6 +57,11 @@ export default function CreateBookModal({
       valid = false;
     }
 
+    if (!newBook.thumbnail) {
+      newErrors.thumbnail = "Vui lòng tải lên ảnh bìa.";
+      valid = false;
+    }
+
     setErrors(newErrors);
 
     if (!valid) return;
@@ -59,7 +69,15 @@ export default function CreateBookModal({
     setLoading(true);
 
     try {
-      const response = await addBook(newBook);
+      const formData = new FormData();
+      formData.append("authorId", newBook.authorId);
+      formData.append("publisherId", newBook.publisherId);
+      formData.append("title", newBook.title);
+      formData.append("isAvailable", newBook.isAvailable);
+      formData.append("type", newBook.type);
+      formData.append("thumbnail", newBook.thumbnail);
+
+      const response = await addBook(formData);
       if (response.success) {
         message.success("Tạo sách thành công.");
         onClose();
@@ -69,6 +87,7 @@ export default function CreateBookModal({
           title: "",
           isAvailable: true,
           type: 0,
+          thumbnail: null,
         });
         fetchBooks();
       }
@@ -84,12 +103,10 @@ export default function CreateBookModal({
       title="Tạo Sách Mới"
       visible={isOpen}
       onCancel={onClose}
-      footer={null} // Custom footer, no default buttons
+      footer={null}
     >
       <div style={{ marginBottom: 16 }}>
-        <label
-          style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}
-        >
+        <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>
           Tên Sách:
         </label>
         <Input
@@ -106,9 +123,7 @@ export default function CreateBookModal({
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <label
-          style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}
-        >
+        <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>
           Tác Giả:
         </label>
         <Select
@@ -130,9 +145,7 @@ export default function CreateBookModal({
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <label
-          style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}
-        >
+        <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>
           Nhà Xuất Bản:
         </label>
         <Select
@@ -154,9 +167,28 @@ export default function CreateBookModal({
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <label
-          style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}
+        <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>
+          Ảnh Bìa:
+        </label>
+        <Upload
+          beforeUpload={(file) => {
+            setNewBook({ ...newBook, thumbnail: file });
+            return false; // Prevent automatic upload
+          }}
+          accept="image/*"
+          maxCount={1}
         >
+          <Button icon={<UploadOutlined />}>Chọn Ảnh</Button>
+        </Upload>
+        {errors.thumbnail && (
+          <Text type="danger" style={{ fontSize: "12px" }}>
+            {errors.thumbnail}
+          </Text>
+        )}
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>
           Trạng Thái Sách:
         </label>
         <Switch
@@ -164,15 +196,12 @@ export default function CreateBookModal({
           onChange={(checked) =>
             setNewBook({ ...newBook, isAvailable: checked })
           }
-          style={{ marginRight: "8px" }}
         />
         <Text>{newBook.isAvailable ? "Còn Sách" : "Hết Sách"}</Text>
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <label
-          style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}
-        >
+        <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>
           Loại Sách:
         </label>
         <Switch
@@ -180,7 +209,6 @@ export default function CreateBookModal({
           onChange={(checked) =>
             setNewBook({ ...newBook, type: checked ? 1 : 0 })
           }
-          style={{ marginRight: "8px" }}
         />
         <Text>
           {newBook.type === 1 ? "Sách Đặc Biệt" : "Sách Thông Thường"}

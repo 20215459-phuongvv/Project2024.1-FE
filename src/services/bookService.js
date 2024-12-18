@@ -42,7 +42,6 @@ export const addBook = async (formData) => {
     const response = await axios.post(`${API_URL}/api/admin/books`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       },
     });
 
@@ -62,7 +61,6 @@ export const updateBook = async (formData) => {
     const response = await axios.put(`${API_URL}/api/admin/books`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       },
     });
 

@@ -272,13 +272,21 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                       selectedBook?.id === book.id ? "2px solid blue" : "",
                     opacity: book.isAvailable ? 1 : 0.5, // Make unavailable books faded
                     cursor: book.isAvailable ? "pointer" : "not-allowed", // Disable click for unavailable books
+                    // textAlign: "center",
                   }}
                   cover={
                     <img
                       alt={book.title}
                       src={
+                        book.thumbnail ||
                         "https://i.pinimg.com/originals/66/8a/8c/668a8cccacc792924fa588b4adca8f68.gif"
                       }
+                      style={{
+                        width: "100%",
+                        height: "300px",
+                        objectFit: "cover",
+                        borderRadius: "5px 5px 0 0",
+                      }}
                     />
                   }
                   onClick={() => handleBookSelect(book)} // Only handle click for available books
@@ -287,7 +295,8 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                     title={book.title}
                     description={
                       <>
-                        <div>{`${book.author.name} | ${book.publisher.name}`}</div>
+                        <div>{`${book.author.name}`}</div>
+                        <div>{`${book.publisher.name}`}</div>
                         <div
                           style={{
                             color: book.isAvailable ? "green" : "red",

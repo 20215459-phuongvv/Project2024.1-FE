@@ -94,21 +94,21 @@ export default function EditAuthorModal({
         )}
       </div>
 
-      {/* <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16 }}>
         <label
           style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}
         >
           Trạng Thái Tác Giả:
         </label>
         <Switch
-          checked={editAuthor.status}
+          checked={editAuthor.status === 1}
           onChange={(checked) =>
-            setEditAuthor({ ...editAuthor, status: checked })
+            setEditAuthor({ ...editAuthor, status: checked ? 1 : 0 })
           }
           style={{ marginRight: "8px" }}
         />
-        <Text>{editAuthor.status ? "Hoạt Động" : "Ngừng Hoạt Động"}</Text>
-      </div> */}
+        <Text>{editAuthor.status === 1 ? "Hoạt Động" : "Ngừng Hoạt Động"}</Text>
+      </div>
 
       <div style={{ textAlign: "right" }}>
         <Button

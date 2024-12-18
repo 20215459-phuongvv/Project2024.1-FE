@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Button, Input, message, Typography } from "antd";
+import { Modal, Button, Input, message, Typography, Switch } from "antd";
 import { addAuthor } from "services/authorService"; // Assuming you have this service
 
 const { Text } = Typography;
@@ -72,6 +72,21 @@ export default function CreateAuthorModal({
             {errors.name}
           </Text>
         )}
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>
+          Trạng thái tác giả:
+        </label>
+        <Switch
+          checked={newAuthor.status === 1}
+          onChange={(checked) =>
+            setNewAuthor({ ...newAuthor, status: checked ? 1 : 0 })
+          }
+        />
+        <Text>
+          {newAuthor.status === 1 ? "Hoạt động" : "Dừng hoạt động"}
+        </Text>
       </div>
 
       <div style={{ textAlign: "right" }}>
