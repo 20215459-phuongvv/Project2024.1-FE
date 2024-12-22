@@ -42,9 +42,13 @@ const CardInfo = () => {
   const handleRegisterCard = async (values) => {
     try {
       // Call the API to register the reading card
-      const data = await registerReadingCard(values);
-      message.success("Đăng ký thẻ đọc thành công!"); // Show success message
-
+      const response = await registerReadingCard(values);
+      const paymentUrl = response.data.paymentUrl;
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+      } else {
+        message.error("Không lấy được URL thanh toán. Vui lòng thử lại!");
+      }
       // After successful registration, fetch the updated card info
       setIsModalVisible(false); // Close the modal
       form.resetFields(); // Reset form fields
