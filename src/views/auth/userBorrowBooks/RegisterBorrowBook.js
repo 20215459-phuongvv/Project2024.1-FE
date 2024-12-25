@@ -299,8 +299,15 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                     <img
                       alt={book.title}
                       src={
-                        "https://i.pinimg.com/originals/66/8a/8c/668a8cccacc792924fa588b4adca8f68.gif"
+                        book.thumbnail 
+                        || "https://i.pinimg.com/originals/66/8a/8c/668a8cccacc792924fa588b4adca8f68.gif"
                       }
+                      style={{
+                        width: "100%",
+                        height: "300px",
+                        objectFit: "cover",
+                        borderRadius: "5px 5px 0 0",
+                      }}
                     />
                   }
                   onClick={() => handleBookSelect(book)}

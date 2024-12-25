@@ -37,6 +37,7 @@ export default function BookManagement() {
   const [publishers, setPublishers] = useState([]);
   const [selectedAuthorId, setSelectedAuthorId] = useState(null);
   const [selectedPublisherId, setSelectedPublisherId] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(null);
   const [selectedBooks, setSelectedBooks] = useState([]);
   const limit = 5;
   const textColor = useColorModeValue("secondaryGray.900", "white");
@@ -58,7 +59,8 @@ export default function BookManagement() {
       search = searchTerm,
       page = currentPage,
       authorId = selectedAuthorId,
-      publisherId = selectedPublisherId
+      publisherId = selectedPublisherId,
+      status = selectedStatus
     ) => {
       setLoading(true);
       try {
@@ -67,7 +69,8 @@ export default function BookManagement() {
           limit,
           search,
           authorId,
-          publisherId
+          publisherId,
+          status
         );
         const { data, meta } = response;
         setBooks(data);
@@ -77,7 +80,7 @@ export default function BookManagement() {
       }
       setLoading(false);
     },
-    [currentPage, limit, selectedAuthorId, selectedPublisherId]
+    [currentPage, limit, selectedAuthorId, selectedPublisherId, selectedStatus]
   );
 
   const debouncedFetchBooks = useCallback(
@@ -105,8 +108,8 @@ export default function BookManagement() {
   }, []);
 
   useEffect(() => {
-    fetchBooks(searchTerm, currentPage, selectedAuthorId, selectedPublisherId);
-  }, [fetchBooks, currentPage, selectedAuthorId, selectedPublisherId]);
+    fetchBooks(searchTerm, currentPage, selectedAuthorId, selectedPublisherId, selectedStatus);
+  }, [fetchBooks, currentPage, selectedAuthorId, selectedPublisherId, selectedStatus]);
 
   const confirmDeleteBooks = async () => {
     if (selectedBooks.length === 0) {
@@ -169,6 +172,18 @@ export default function BookManagement() {
           style={{ color: isAvailable ? "green" : "red", fontWeight: "bold" }}
         >
           {isAvailable ? "Còn Sách" : "Hết Sách"}
+        </span>
+      ),
+    },
+    {
+      title: "Ẩn/Hiện",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <span
+          style={{ color: status === 1 ? "green" : "red", fontWeight: "bold" }}
+        >
+          {status === 1 ? "Hiện" : "Ẩn"}
         </span>
       ),
     },
@@ -242,7 +257,7 @@ export default function BookManagement() {
               setSearchTerm(e.target.value);
               debouncedFetchBooks(e.target.value);
             }}
-            style={{ width: "40%" }}
+            style={{ width: "20%" }}
           />
           <Select
             placeholder="Chọn Tác Giả"
@@ -250,7 +265,7 @@ export default function BookManagement() {
             allowClear
             onChange={(value) => {
               setSelectedAuthorId(value);
-              fetchBooks(searchTerm, currentPage, value, selectedPublisherId);
+              fetchBooks(searchTerm, currentPage, value, selectedPublisherId, selectedStatus);
             }}
             style={{ width: "20%", marginLeft: "10px", height: "40px" }}
           >
@@ -266,7 +281,7 @@ export default function BookManagement() {
             allowClear
             onChange={(value) => {
               setSelectedPublisherId(value);
-              fetchBooks(searchTerm, currentPage, selectedAuthorId, value);
+              fetchBooks(searchTerm, currentPage, selectedAuthorId, value, selectedStatus);
             }}
             style={{ width: "20%", marginLeft: "10px", height: "40px" }}
           >
@@ -275,6 +290,23 @@ export default function BookManagement() {
                 {publisher.name}
               </Select.Option>
             ))}
+          </Select>
+          <Select
+            placeholder="Trạng thái"
+            value={selectedStatus} 
+            allowClear
+            onChange={(value) => {
+              setSelectedStatus(value);
+              fetchBooks(searchTerm, currentPage, selectedAuthorId, selectedPublisherId, value);
+            }}
+            style={{ width: "20%", marginLeft: "10px", height: "40px" }}
+          >
+            <Select.Option key="1" value={1}>
+              Hiện
+            </Select.Option>
+            <Select.Option key="0" value={0}>
+              Ẩn
+            </Select.Option>
           </Select>
           <ChakraButton colorScheme="brand" onClick={onCreateOpen}>
             Thêm Mới

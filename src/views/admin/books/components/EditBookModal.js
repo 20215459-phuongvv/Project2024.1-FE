@@ -5,28 +5,32 @@ import {
   Input,
   Switch,
   Select,
+  Upload,
   message,
   Typography,
 } from "antd";
 import { updateBook } from "services/bookService"; // Assuming you have this service
+import { UploadOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
 export default function EditBookModal({
   isOpen,
   onClose,
-  book, // The book to be edited
-  fetchBooks, // Function to fetch books after update
-  authors, // List of authors passed as props
-  publishers, // List of publishers passed as props
+  book,
+  fetchBooks,
+  authors,
+  publishers,
 }) {
   const [editBooking, setEditBooking] = useState({
-    id: "", // Add id property here
+    id: "",
     title: "",
-    authorId: 1, // Default to first author
-    publisherId: 1, // Default to first publisher
+    authorId: 1,
+    publisherId: 1,
     isAvailable: true,
-    type: 0, // Default type as normal (0)
+    type: 0,
+    status: 1,
+    thumbnail: null,
   });
 
   const [loading, setLoading] = useState(false);
@@ -34,27 +38,54 @@ export default function EditBookModal({
     title: "",
     authorId: "",
     publisherId: "",
+    thumbnail: "",
   });
 
-  // Set the form with book data when the modal is opened
+  const [fileList, setFileList] = useState([]);
+
+  // Khi mở modal, tải thông tin sách hiện tại
   useEffect(() => {
     if (book) {
       setEditBooking({
-        id: book.id, // Set the book ID here
+        id: book.id,
         title: book.title,
         authorId: book.author.id,
         publisherId: book.publisher.id,
         isAvailable: book.isAvailable,
         type: book.type,
+        status: book.status,
+        thumbnail: book.thumbnail,
       });
-      setErrors({ title: "", authorId: "", publisherId: "" }); // Clear errors
+      setFileList(
+        book.thumbnail
+          ? [
+              {
+                uid: "-1",
+                name: "Thumbnail",
+                status: "done",
+                url: book.thumbnail,
+              },
+            ]
+          : []
+      );
+      setErrors({ title: "", authorId: "", publisherId: "" });
     }
   }, [book]);
 
-  // Handle form submission (book update)
+  // Xử lý tải file
+  const handleFileChange = ({ fileList }) => {
+    setFileList(fileList);
+    if (fileList.length === 0) {
+      setEditBooking({ ...editBooking, thumbnail: null });
+    } else if (fileList[0].response) {
+      setEditBooking({ ...editBooking, thumbnail: fileList[0].response.url });
+    }
+  };
+
+  // Nộp form (cập nhật sách)
   const handleSubmit = async () => {
     let valid = true;
-    const newErrors = { title: "", authorId: "", publisherId: "" };
+    const newErrors = { title: "", authorId: "", publisherId: "", thumbnail: "" };
 
     if (!editBooking.title) {
       newErrors.title = "Vui lòng nhập tên sách.";
@@ -71,6 +102,11 @@ export default function EditBookModal({
       valid = false;
     }
 
+    if (!editBooking.thumbnail) {
+      newErrors.thumbnail = "Vui lòng tải ảnh bìa.";
+      valid = false;
+    }
+
     setErrors(newErrors);
 
     if (!valid) return;
@@ -78,11 +114,20 @@ export default function EditBookModal({
     setLoading(true);
 
     try {
-      const response = await updateBook(editBooking); // Send book.id with the update data
+      let updatedThumbnail = editBooking.thumbnail;
+
+      if (typeof updatedThumbnail === "string") {
+        updatedThumbnail = null;
+      }
+      const payload = {
+        ...editBooking,
+        thumbnail: updatedThumbnail,
+      };
+      const response = await updateBook(payload);
       if (response.success) {
         message.success("Cập nhật sách thành công.");
         onClose();
-        fetchBooks(); // Fetch updated list of books
+        fetchBooks();
       }
     } catch (error) {
       message.error(error.response?.data?.message || "Cập nhật sách thất bại.");
@@ -96,7 +141,7 @@ export default function EditBookModal({
       title="Chỉnh sửa Sách"
       visible={isOpen}
       onCancel={onClose}
-      footer={null} // Custom footer, not using AntD default
+      footer={null}
     >
       <div style={{ marginBottom: 16 }}>
         <label
@@ -203,6 +248,78 @@ export default function EditBookModal({
         <Text>
           {editBooking.type === 1 ? "Sách Đặc Biệt" : "Sách Thông Thường"}
         </Text>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label
+          style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}
+        >
+          Trạng thái:
+        </label>
+        <Switch
+          checked={editBooking.status === 1}
+          onChange={(checked) =>
+            setEditBooking({ ...editBooking, status: checked ? 1 : 0 })
+          }
+          style={{ marginRight: "8px" }}
+        />
+        <Text>
+          {editBooking.status === 1 ? "Hiện sách" : "Ẩn sách"}
+        </Text>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>
+          Ảnh Bìa:
+        </label>
+        <Upload
+          beforeUpload={(file) => {
+            // Tạo một bản sao đối tượng `editBooking`
+            const updatedBooking = { ...editBooking };
+
+            // Gán tệp mới vào `thumbnail`
+            updatedBooking.thumbnail = file;
+
+            // Cập nhật lại state
+            setEditBooking(updatedBooking);
+
+            return false; // Ngăn tự động upload
+          }}
+          accept="image/*"
+          maxCount={1}
+          fileList={
+            editBooking.thumbnail
+              ? [
+                  {
+                    uid: "-1", // ID duy nhất cho file
+                    name:
+                      typeof editBooking.thumbnail === "string"
+                        ? "Ảnh Bìa Hiện Tại" // Đặt tên hiển thị nếu là URL
+                        : editBooking.thumbnail.name, // Lấy tên gốc nếu là File
+                    status: "done",
+                    url:
+                      typeof editBooking.thumbnail === "string"
+                        ? editBooking.thumbnail // URL ảnh hiện tại
+                        : URL.createObjectURL(editBooking.thumbnail), // URL ảnh mới được chọn
+                  },
+                ]
+              : []
+          }
+          onRemove={() => {
+            // Cập nhật state để xóa ảnh
+            setEditBooking((prev) => ({
+              ...prev,
+              thumbnail: null,
+            }));
+          }}
+        >
+          <Button icon={<UploadOutlined />}>Chọn Ảnh</Button>
+        </Upload>
+        {errors.thumbnail && (
+          <Text type="danger" style={{ fontSize: "12px" }}>
+            {errors.thumbnail}
+          </Text>
+        )}
       </div>
 
       <div style={{ textAlign: "right" }}>

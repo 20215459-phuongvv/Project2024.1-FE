@@ -8,14 +8,15 @@ export const getAllBooks = async (
   size = 5,
   title = "",
   authorId,
-  publisherId
+  publisherId,
+  status
 ) => {
   try {
     const user = JSON.parse(localStorage.getItem("user"));
     const token = user ? user.jwt : null;
 
     const response = await axios.get(`${API_URL}/api/admin/books`, {
-      params: { page, size, title, authorId, publisherId },
+      params: { page, size, title, authorId, publisherId, status },
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -61,6 +62,7 @@ export const updateBook = async (formData) => {
     const response = await axios.put(`${API_URL}/api/admin/books`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data", // Đảm bảo gửi dữ liệu dưới dạng form data
       },
     });
 
