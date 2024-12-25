@@ -241,8 +241,8 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
               }}
               style={{ width: "12%", height: "40px" }}
             >
-              <Select.Option value={1}>Đã Đăng Ký</Select.Option>
-              <Select.Option value={0}>Chưa Đăng Ký</Select.Option>
+              <Select.Option value={true}>Đã Đăng Ký</Select.Option>
+              <Select.Option value={false}>Chưa Đăng Ký</Select.Option>
             </Select>
             <Input
               type="number"
