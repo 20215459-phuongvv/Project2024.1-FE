@@ -142,7 +142,6 @@ export default function HeaderLinks(props) {
           )}
         </MenuList>
       </Menu>
-      <ThemeEditor navbarIcon={navbarIcon} />
       <Menu>
         <MenuButton p="0px">
           <Avatar

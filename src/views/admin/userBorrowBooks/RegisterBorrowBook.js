@@ -298,12 +298,12 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                       </>
                     }
                   />
-                  <div style={{ marginTop: "10px" }}>
+                  <div style={{ marginTop: "10px", textAlign: "center" }}>
                     <Button
                       type="primary"
                       onClick={book.isAvailable ? () => openBorrowModal(book) : null}
                       disabled={!book.isAvailable} // Disable button if book is not available
-                      style={{ marginRight: "10px", marginBottom: "10px" }}
+                      style={{ marginRight: "10px", marginBottom: "10px", width: "100%" }}
 
                     >
                       Mượn Sách
@@ -311,7 +311,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                     {book.isSubscribe ? (
                       <Button
                         type="default"
-                        style={{ color: "red" }}
+                        style={{ color: "red", width: "100%"  }}
                         onClick={() => handleUnsubscribe(book.id)}
                       >
                         Hủy đăng ký
@@ -319,7 +319,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                     ) : (
                       <Button
                         type="default"
-                        style={{ color: "green" }}
+                        style={{ color: "green", width: "100%"  }}
                         onClick={() => handleSubscribe(book.id)}
                       >
                         Đăng ký nhận tin

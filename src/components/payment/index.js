@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import { message } from "antd";
+import { registerReadingCard, renewReadingCard, upgradeVip } from "services/userService";
 
 const PaymentResult = () => {
   const location = useLocation();
@@ -13,7 +14,7 @@ const PaymentResult = () => {
     return Object.fromEntries(new URLSearchParams(search).entries());
   };
 
-  useEffect(() => {
+  useEffect(async () => {
     const queryParams = parseQueryParams(location.search);
     const { vnp_ResponseCode, vnp_Amount, vnp_TxnRef } = queryParams;
 
@@ -25,14 +26,34 @@ const PaymentResult = () => {
     }
 
     if (vnp_ResponseCode === "00") {
-      message.success("Thanh toán thành công!");
+      const pendingCardRegistration = JSON.parse(localStorage.getItem("pendingCardRegistration"));
+      if (pendingCardRegistration) {
+        if (pendingCardRegistration.isRegistering == 1) {
+          const response = await registerReadingCard(pendingCardRegistration);
+          setStatus("success");
+          message.success("Thanh toán thành công!");
+        } else {
+          const response = await renewReadingCard(pendingCardRegistration);
+          setStatus("success");
+          message.success("Thanh toán thành công!");
+        }
+      } else {
+        const response = await upgradeVip();
+        setStatus("success");
+        message.success("Thanh toán thành công!");
+      }
 
+      
+      localStorage.removeItem("pendingCardRegistration");
       // Redirect về trang chủ sau 3 giây
       setTimeout(() => {
         history.push("/");
       }, 3000); 
     } else {
       message.error("Thanh toán thất bại!");
+      setTimeout(() => {
+        history.push("/");
+      }, 3000); 
     }
     setLoading(false);
 

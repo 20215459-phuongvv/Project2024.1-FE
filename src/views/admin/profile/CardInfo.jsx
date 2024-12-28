@@ -12,7 +12,7 @@ import {
   InputNumber,
   message, // Import message for feedback
 } from "antd";
-import { getCardInfo, registerReadingCard } from "services/userService"; // Import API call
+import { getCardInfo, requestPayment, requestUpgradeVipPayment } from "services/userService"; // Import API call
 
 const { Meta } = Card;
 
@@ -21,6 +21,7 @@ const CardInfo = () => {
   const [loading, setLoading] = useState(true); // Loading state
   const [error, setError] = useState(null); // Error state
   const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility state
+  const [isRenewModalVisible, setIsRenewModalVisible] = useState(false); // Gia hạn modal
   const [form] = Form.useForm(); // Form instance
   const fetchCardInfo = async () => {
     try {
@@ -42,9 +43,10 @@ const CardInfo = () => {
   const handleRegisterCard = async (values) => {
     try {
       // Call the API to register the reading card
-      const response = await registerReadingCard(values);
+      const response = await requestPayment(values);
       const paymentUrl = response.data.paymentUrl;
       if (paymentUrl) {
+        localStorage.setItem("pendingCardRegistration", JSON.stringify(values));
         window.location.href = paymentUrl;
       } else {
         message.error(error.response?.data?.message || "Không lấy được URL thanh toán. Vui lòng thử lại!");
@@ -59,6 +61,22 @@ const CardInfo = () => {
     }
   };
 
+  const handleUpgradeVip = async () => {
+    try {
+      const response = await requestUpgradeVipPayment();
+      const paymentUrl = response.data.paymentUrl;
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+      } else {
+        message.error(error.response?.data?.message || "Không lấy được URL thanh toán. Vui lòng thử lại!");
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+      fetchCardInfo();
+    } catch (error) {
+      message.error(error.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại!"); // Show error message
+    }
+  };
   // If the data is loading, show a loading spinner
   if (loading) {
     return <Spin size="large" />;
@@ -73,7 +91,16 @@ const CardInfo = () => {
   if (!cardInfo) {
     return (
       <div style={styles.cardContainer}>
-        <Button type="primary" onClick={() => setIsModalVisible(true)}>
+        <Button 
+          type="primary" 
+          onClick={() => setIsModalVisible(true)}
+          style={{
+            width: "100%",
+            height: "40px",
+            backgroundColor: "#FF8000",
+            borderColor: "#FF8000",
+            color: "white",
+          }}>
           Đăng ký thẻ đọc
         </Button>
 
@@ -87,11 +114,12 @@ const CardInfo = () => {
         >
           <Form
             form={form}
-            onFinish={handleRegisterCard}
+            onFinish={(values) => handleRegisterCard({ ...values, isRegistering: 1 })}
             layout="vertical"
             initialValues={{
               type: 0, // Default to Monthly
               numberOfPeriod: 1,
+              isRegistering: 1
             }}
           >
             <Form.Item
@@ -158,6 +186,27 @@ const CardInfo = () => {
               <p>{user.name}</p>
             </div>
             <div style={styles.cardItem}>
+              <strong>Loại người dùng:</strong>
+              <p>
+                {user.role == "USER" ? "Người dùng thường" : "Người dùng VIP"}
+                <Button 
+                  type="primary" 
+                  onClick={handleUpgradeVip}
+                  style={{
+                    width: "30%",
+                    height: "30px",
+                    backgroundColor: "#FF8000",
+                    borderColor: "#FF8000",
+                    color: "white",
+                    marginLeft: "30px",
+                    visibility: user.role == "USER" ? "visible" : "hidden",
+                  }}
+                >
+                  Nâng cấp lên VIP
+                </Button>
+              </p>
+            </div>
+            <div style={styles.cardItem}>
               <strong>Email:</strong>
               <p>{user.email}</p>
             </div>
@@ -183,7 +232,7 @@ const CardInfo = () => {
           <Col span={12}>
             <div style={styles.cardItem}>
               <strong>Loại thẻ:</strong>
-              <p>{type === 0 ? "Thẻ thường" : "Thẻ VIP"}</p>
+              <p>{type === 0 ? "Thẻ tháng" : "Thẻ năm"}</p>
             </div>
           </Col>
           <Col span={12}>
@@ -207,7 +256,10 @@ const CardInfo = () => {
           <Col span={12}>
             <div style={styles.cardItem}>
               <strong>Trạng thái:</strong>
-              <Tag color={status === 1 ? "green" : "red"}>
+              <Tag 
+                color={status === 1 ? "green" : "red"}
+                style={{ marginLeft: "20px" }}
+              >
                 {status === 1 ? "Hoạt động" : "Không hoạt động"}
               </Tag>
             </div>
@@ -219,7 +271,53 @@ const CardInfo = () => {
             </div>
           </Col>
         </Row>
+        <div style={{ textAlign: "center" }}>
+          <Button 
+            type="primary" 
+            onClick={() => setIsRenewModalVisible(true)}
+            style={{
+              width: "50%",
+              height: "40px",
+              backgroundColor: "#FF8000",
+              borderColor: "#FF8000",
+              color: "white",
+            }}
+          >
+            Gia hạn thẻ đọc
+          </Button>
+        </div>
       </Card>
+      <Modal
+        title="Gia hạn thẻ đọc"
+        visible={isRenewModalVisible}
+        onCancel={() => setIsRenewModalVisible(false)}
+        footer={null}
+        centered
+      >
+        <Form
+          form={form}
+          onFinish={(values) => handleRegisterCard({ ...values, isRegistering: 0, type: type })}
+          layout="vertical"
+          initialValues={{ 
+            numberOfPeriod: 1 , 
+            isRegistering: 0 , 
+            type: 0 }}
+        >
+          <Form.Item
+            label="Số kỳ muốn gia hạn"
+            name="numberOfPeriod"
+            rules={[{ required: true, message: "Vui lòng nhập số kỳ!" }]}
+          >
+            <InputNumber min={1} max={12} />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block>
+              Gia hạn
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

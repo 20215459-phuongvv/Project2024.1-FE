@@ -156,3 +156,95 @@ export const registerReadingCard = async (data) => {
     throw error;
   }
 };
+
+export const renewReadingCard = async (data) => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user ? user.jwt : null;
+
+    const response = await axios.put(
+      `${API_URL}/api/subscription/renew`,
+      data, // The profile data to update
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    throw error;
+  }
+};
+
+export const requestPayment = async (data) => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user ? user.jwt : null;
+
+    const response = await axios.post(
+      `${API_URL}/api/subscription/request-payment`,
+      data, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error requesting payment:", error);
+    throw error;
+  }
+}
+
+export const upgradeVip = async (data) => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user ? user.jwt : null;
+
+    const response = await axios.put(
+      `${API_URL}/api/users/upgrade-vip`,
+      data, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error requesting payment:", error);
+    throw error;
+  }
+}
+
+export const requestUpgradeVipPayment = async (data) => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user ? user.jwt : null;
+
+    const response = await axios.put(
+      `${API_URL}/api/users/request-payment`,
+      data, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error requesting payment:", error);
+    throw error;
+  }
+}
