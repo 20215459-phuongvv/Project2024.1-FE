@@ -78,7 +78,7 @@ export default function AuthorManagement() {
       message.success("Khóa tác giả thành công.");
       fetchAuthors();
     } catch (error) {
-      message.error("Lỗi khi khóa tác giả.");
+      message.error(error.response?.data?.message || "Error");
     }
   };
 

@@ -75,7 +75,7 @@ const Profile = () => {
         "Cập nhật hồ sơ thành công. Vui lòng đăng nhập lại để cập nhật thông tin"
       );
     } catch (error) {
-      message.error("Cập nhật hồ sơ thất bại");
+      message.error(error.response?.data?.message || "Cập nhật hồ sơ thất bại");
     }
 
     setLoading(false);
@@ -89,15 +89,15 @@ const Profile = () => {
     setPasswordLoading(true);
 
     try {
-      await changePassword(passwords.password, passwords.newPassword);
-      message.success("Đổi mật khẩu thành công");
+      const response = await changePassword(passwords.password, passwords.newPassword);
+      message.success(response.message);
       setPasswords({
         password: "",
         newPassword: "",
         confirmNewPassword: "",
       });
     } catch (error) {
-      message.error("Đổi mật khẩu thất bại");
+      message.error(error.response?.data?.message || "Đổi mật khẩu thất bại");
     }
 
     setPasswordLoading(false);

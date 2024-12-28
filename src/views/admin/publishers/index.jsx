@@ -78,7 +78,7 @@ export default function PublisherManagement() {
       message.success("Khóa nhà xuất bản thành công.");
       fetchPublishers();
     } catch (error) {
-      message.error("Lỗi khi khóa nhà xuất bản.");
+      message.error(error.response?.data?.message || "Lỗi khi khóa nhà xuất bản.");
     }
   };
 

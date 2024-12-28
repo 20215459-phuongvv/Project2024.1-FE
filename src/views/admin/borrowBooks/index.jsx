@@ -88,7 +88,7 @@ export default function BorrowBookManagement() {
       message.success("Trả sách thành công");
       fetchBorrowedBooks(); // Lấy lại danh sách sau khi trả sách
     } catch (error) {
-      message.error("Lỗi khi trả sách");
+      message.error(error.response?.data?.message || "Lỗi khi trả sách");
     }
   };
 

@@ -18,7 +18,7 @@ const Settings = () => {
       message.success("Giới hạn VIP đã được cập nhật.");
       setVipLimit(""); // Reset input field
     } catch (error) {
-      message.error("Không thể cập nhật giới hạn VIP.");
+      message.error(error.response?.data?.message || "Không thể cập nhật giới hạn VIP.");
     }
   };
 
@@ -29,7 +29,7 @@ const Settings = () => {
       message.success("Giới hạn thường đã được cập nhật.");
       setNormalLimit(""); // Reset input field
     } catch (error) {
-      message.error("Không thể cập nhật giới hạn thường.");
+      message.error(error.response?.data?.message || "Không thể cập nhật giới hạn thường.");
     }
   };
 

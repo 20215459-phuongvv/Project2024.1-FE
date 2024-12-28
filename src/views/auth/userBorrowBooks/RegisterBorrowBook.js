@@ -9,6 +9,8 @@ import {
   Spin,
   Pagination,
   Select,
+  Modal,
+  Descriptions,
 } from "antd";
 import { getAllBooks, addBorrowBookForUser } from "services/userService";
 import { debounce } from "lodash";
@@ -20,7 +22,9 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
-  const [borrowDays, setBorrowDays] = useState();
+  const [borrowModalVisible, setBorrowModalVisible] = useState(false); // For borrow book modal
+  const [modalVisible, setModalVisible] = useState(false); // For book detail modal
+  const [borrowDays, setBorrowDays] = useState(15); // Default 15 days
   const [currentPage, setCurrentPage] = useState(1);
   const [totalBooks, setTotalBooks] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,7 +60,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
     []
   );
 
-  // Function to fetch books based on the current page, search query, author, publisher filters, and availability
+  // Fetch books
   const fetchBooks = async (
     search = searchQuery,
     authorId = selectedAuthorId,
@@ -79,7 +83,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
       setTotalBooks(response.meta.total);
     } catch (error) {
       console.error("Error fetching books:", error);
-      message.error("Lỗi khi tải sách");
+      message.error(error.response?.data?.message || "Lỗi khi tải sách");
     }
     setLoading(false);
   };
@@ -95,21 +99,14 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
   ]);
 
   const handleBookSelect = (book) => {
-    if (book.isAvailable) {
-      setSelectedBook(book);
-    }
+    setSelectedBook(book);
+    setModalVisible(true);
   };
 
   const handleBorrowBook = async () => {
-    // Kiểm tra người dùng đã đăng nhập chưa
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
       message.warning("Bạn cần đăng nhập trước khi mượn sách!");
-      return;
-    }
-
-    if (!selectedBook) {
-      message.error("Vui lòng chọn một sách để mượn!");
       return;
     }
     if (borrowDays < 1 || borrowDays > 45) {
@@ -122,45 +119,41 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
       if (response) {
         message.success("Mượn sách thành công!");
         setSelectedBook(null);
-        setBorrowDays(15);
+        setBorrowModalVisible(false); // Close borrow modal
         fetchBorrowedBooks();
       }
     } catch (error) {
-      message.error("Lỗi khi mượn sách");
+      message.error(error.response?.data?.message || "Lỗi khi mượn sách");
     }
   };
 
   const handleSubscribe = async (bookId) => {
-    // Kiểm tra người dùng đã đăng nhập chưa
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) {
-      message.warning("Bạn cần đăng nhập trước khi đăng ký nhận tin!");
-      return;
-    }
-
     try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) {
+        message.warning("Bạn cần đăng nhập để đăng ký nhận tin!");
+        return;
+      }
       await subscribeToBook(bookId);
       message.success("Đăng ký nhận thông báo thành công!");
       fetchBooks();
     } catch (error) {
-      message.error("Lỗi khi đăng ký nhận thông báo.");
+      message.error(error.response?.data?.message || "Lỗi khi đăng ký nhận thông báo.");
     }
   };
 
   const handleUnsubscribe = async (bookId) => {
-    // Kiểm tra người dùng đã đăng nhập chưa
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) {
-      message.warning("Bạn cần đăng nhập trước khi hủy đăng ký nhận tin!");
-      return;
-    }
-
     try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) {
+        message.warning("Bạn cần đăng nhập trước khi hủy đăng ký nhận tin!");
+        return;
+      }
       await unSubscribeToBook(bookId);
       message.success("Hủy đăng ký nhận thông báo thành công!");
       fetchBooks();
     } catch (error) {
-      message.error("Lỗi khi hủy đăng ký nhận thông báo.");
+      message.error(error.response?.data?.message || "Lỗi khi hủy đăng ký nhận thông báo.");
     }
   };
 
@@ -173,12 +166,18 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
     debouncedFetchBooks(e.target.value);
   };
 
+  const openBorrowModal = (book) => {
+    setSelectedBook(book);
+    setBorrowModalVisible(true);
+  };
+
   return (
     <div>
       {loading ? (
         <Spin size="large" />
       ) : (
         <>
+          {/* Tìm kiếm và lọc */}
           <Row justify="space-between" style={{ marginBottom: "30px" }}>
             <Input
               type="text"
@@ -186,7 +185,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
               onChange={handleSearchChange}
               allowClear
               placeholder="Tìm kiếm sách..."
-              style={{ width: "12%", height: "40px" }}
+              style={{ width: "18%", height: "40px" }}
             />
             <Select
               placeholder="Chọn Tác Giả"
@@ -201,7 +200,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                   selectedAvailability
                 );
               }}
-              style={{ width: "12%", height: "40px" }}
+              style={{ width: "18%", height: "40px" }}
             >
               {authors.map((author) => (
                 <Select.Option key={author.id} value={author.id}>
@@ -222,7 +221,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                   selectedAvailability
                 );
               }}
-              style={{ width: "12%", height: "40px" }}
+              style={{ width: "18%", height: "40px" }}
             >
               {publishers.map((publisher) => (
                 <Select.Option key={publisher.id} value={publisher.id}>
@@ -243,7 +242,7 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                   value
                 );
               }}
-              style={{ width: "12%", height: "40px" }}
+              style={{ width: "18%", height: "40px" }}
             >
               <Select.Option value={1}>Còn Sách</Select.Option>
               <Select.Option value={0}>Hết Sách</Select.Option>
@@ -262,103 +261,218 @@ const RegisterBorrowBook = ({ fetchBorrowedBooks }) => {
                   value
                 );
               }}
-              style={{ width: "12%", height: "40px" }}
+              style={{ width: "18%", height: "40px" }}
             >
               <Select.Option value={1}>Đã Đăng Ký</Select.Option>
               <Select.Option value={0}>Chưa Đăng Ký</Select.Option>
             </Select>
-            <Input
-              type="number"
-              placeholder="Nhập số ngày mượn"
-              min={1}
-              max={45}
-              value={borrowDays}
-              onChange={(e) => setBorrowDays(e.target.value)}
-              style={{ width: "12%", height: "40px" }}
-            />
-            <Button
-              type="primary"
-              onClick={handleBorrowBook}
-              style={{ height: "40px" }}
-            >
-              Xác Nhận Mượn Sách
-            </Button>
+
           </Row>
+
+          {/* Danh sách sách */}
           <Row gutter={[16, 16]}>
             {books.map((book) => (
               <Col span={6} key={book.id}>
                 <Card
-                  hoverable
+                  hoverable={book.isAvailable} // Disable hover if book is not available
                   style={{
-                    border:
-                      selectedBook?.id === book.id ? "2px solid blue" : "",
-                    opacity: book.isAvailable ? 1 : 0.5,
-                    cursor: book.isAvailable ? "pointer" : "not-allowed",
+                    border: selectedBook?.id === book.id ? "2px solid blue" : "",
+                    cursor: book.isAvailable ? "pointer" : "not-allowed", // Disable pointer if book is not available
+                    opacity: book.isAvailable ? 1 : 0.5, // Dim card if book is not available
                   }}
                   cover={
                     <img
                       alt={book.title}
                       src={
-                        book.thumbnail 
-                        || "https://i.pinimg.com/originals/66/8a/8c/668a8cccacc792924fa588b4adca8f68.gif"
+                        book.thumbnail ||
+                        "https://i.pinimg.com/originals/66/8a/8c/668a8cccacc792924fa588b4adca8f68.gif"
                       }
                       style={{
                         width: "100%",
                         height: "300px",
                         objectFit: "cover",
-                        borderRadius: "5px 5px 0 0",
                       }}
                     />
                   }
-                  onClick={() => handleBookSelect(book)}
                 >
                   <Card.Meta
+                    onClick={() => handleBookSelect(book)} // Only allow click if book is available
                     title={book.title}
                     description={
                       <>
-                        <div>{`${book.author.name} | ${book.publisher.name}`}</div>
-                        <div
-                          style={{
-                            color: book.isAvailable ? "green" : "red",
-                            fontWeight: "bold",
-                            marginTop: "5px",
-                          }}
-                        >
-                          {book.isAvailable ? "Còn Sách" : "Hết Sách"}
+                        <div><strong>Tác giả:</strong> {book.author?.name}</div>
+                        <div><strong>Nhà xuất bản:</strong> {book.publisher?.name}</div>
+                        <div>
+                          <strong>Trạng thái:</strong>{" "}
+                          {book.isAvailable ? (
+                            <span style={{ color: "green", fontWeight: "bold" }}>Còn sách</span>
+                          ) : (
+                            <span style={{ color: "red", fontWeight: "bold" }}>Hết sách</span>
+                          )}
                         </div>
                       </>
                     }
                   />
-                  {book.isSubscribe ? (
+                  <div style={{ marginTop: "10px" }}>
                     <Button
-                      type="default"
-                      block
-                      onClick={() => handleUnsubscribe(book.id)}
-                      style={{ marginTop: "10px", color: "red" }}
+                      type="primary"
+                      onClick={book.isAvailable ? () => openBorrowModal(book) : null}
+                      disabled={!book.isAvailable} // Disable button if book is not available
+                      style={{ marginRight: "10px", marginBottom: "10px" }}
+
                     >
-                      Hủy đăng ký
+                      Mượn Sách
                     </Button>
-                  ) : (
-                    <Button
-                      type="default"
-                      block
-                      onClick={() => handleSubscribe(book.id)}
-                      style={{ marginTop: "10px", color: "green" }}
-                    >
-                      Đăng ký nhận tin
-                    </Button>
-                  )}
+                    {book.isSubscribe ? (
+                      <Button
+                        type="default"
+                        style={{ color: "red" }}
+                        onClick={() => handleUnsubscribe(book.id)}
+                      >
+                        Hủy đăng ký
+                      </Button>
+                    ) : (
+                      <Button
+                        type="default"
+                        style={{ color: "green" }}
+                        onClick={() => handleSubscribe(book.id)}
+                      >
+                        Đăng ký nhận tin
+                      </Button>
+                    )}
+                  </div>
                 </Card>
               </Col>
             ))}
           </Row>
 
+
+          {/* Modal Chi tiết sách */}
+          {selectedBook && (
+            <Modal
+              visible={modalVisible}
+              title={<h2 style={{ textAlign: "center" }}>Chi tiết sách</h2>}
+              onCancel={() => setModalVisible(false)}
+              footer={[
+                <Button
+                  key="close"
+                  onClick={() => setModalVisible(false)}
+                  style={{
+                    background: "#ccc",
+                    color: "#333",
+                    borderRadius: "5px",
+                    padding: "10px 20px",
+                  }}
+                >
+                  Đóng
+                </Button>,
+              ]}
+              centered
+              width={800} // Tăng chiều rộng của Modal
+            >
+              <Row gutter={[16, 16]} align="middle">
+                {/* Hình ảnh sách */}
+                <Col span={8}>
+                  <img
+                    src={
+                      selectedBook.thumbnail ||
+                      "https://i.pinimg.com/originals/66/8a/8c/668a8cccacc792924fa588b4adca8f68.gif" // Hình ảnh mặc định
+                    }
+                    alt={selectedBook.title}
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      objectFit: "cover",
+                      borderRadius: "5px",
+                      boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+                    }}
+                  />
+                </Col>
+
+                {/* Thông tin sách */}
+                <Col span={16}>
+                  <Descriptions bordered size="small" column={1}>
+                    <Descriptions.Item label="Tên sách">
+                      {selectedBook.title}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Tác giả">
+                      {selectedBook.author?.name || "Không rõ"}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Nhà xuất bản">
+                      {selectedBook.publisher?.name || "Không rõ"}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Trạng thái">
+                      {selectedBook.isAvailable ? (
+                        <span style={{ color: "green" }}>Còn sách</span>
+                      ) : (
+                        <span style={{ color: "red" }}>Hết sách</span>
+                      )}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Loại sách">
+                      {selectedBook.type === 0 ? "Văn học" : "Khác"}
+                    </Descriptions.Item>
+                    {/* <Descriptions.Item label="Trạng thái kích hoạt">
+                      {selectedBook.status === 1 ? "Kích hoạt" : "Ngừng hoạt động"}
+                    </Descriptions.Item> */}
+                    <Descriptions.Item label="Ngày cập nhật">
+                      {selectedBook.updatedAt
+                        ? new Date(selectedBook.updatedAt).toLocaleDateString()
+                        : "Chưa cập nhật"}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Cập nhật bởi">
+                      {selectedBook.updatedBy || "Không rõ"}
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Col>
+              </Row>
+            </Modal>
+          )}
+
+
+
+          {/* Modal Mượn sách */}
+          {selectedBook && (
+            <Modal
+              visible={borrowModalVisible}
+              title="Mượn Sách"
+              onCancel={() => setBorrowModalVisible(false)}
+              footer={[
+                <Button
+                  key="confirm"
+                  type="primary"
+                  onClick={handleBorrowBook}
+                >
+                  Xác nhận mượn sách
+                </Button>,
+                <Button
+                  key="close"
+                  onClick={() => setBorrowModalVisible(false)}
+                >
+                  Đóng
+                </Button>,
+              ]}
+            >
+              <p style={{ marginBottom: 10 }}>
+                <strong>Bạn đang mượn:</strong> {selectedBook.title}
+              </p>
+              <Input
+                type="number"
+                min={1}
+                max={45}
+                value={borrowDays}
+                onChange={(e) => setBorrowDays(e.target.value)}
+                placeholder="Nhập số ngày mượn (1 - 45)"
+              />
+            </Modal>
+          )}
+
+          {/* Phân trang */}
           <Pagination
             current={currentPage}
             pageSize={pageSize}
             total={totalBooks}
             onChange={handlePageChange}
-            style={{ marginTop: 20, textAlign: "center" }}
+            style={{ marginTop: "20px", textAlign: "center" }}
           />
         </>
       )}

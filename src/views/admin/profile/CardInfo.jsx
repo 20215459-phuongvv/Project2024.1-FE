@@ -47,14 +47,14 @@ const CardInfo = () => {
       if (paymentUrl) {
         window.location.href = paymentUrl;
       } else {
-        message.error("Không lấy được URL thanh toán. Vui lòng thử lại!");
+        message.error(error.response?.data?.message || "Không lấy được URL thanh toán. Vui lòng thử lại!");
       }
       // After successful registration, fetch the updated card info
       setIsModalVisible(false); // Close the modal
       form.resetFields(); // Reset form fields
       fetchCardInfo();
     } catch (error) {
-      message.error("Đã có lỗi xảy ra. Vui lòng thử lại!"); // Show error message
+      message.error(error.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại!"); // Show error message
       console.error("Error registering card: ", error);
     }
   };

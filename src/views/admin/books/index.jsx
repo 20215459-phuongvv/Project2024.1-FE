@@ -122,7 +122,7 @@ export default function BookManagement() {
       message.success("Xóa sách thành công.");
       fetchBooks();
     } catch (error) {
-      message.error("Lỗi khi xóa sách.");
+      message.error(error.response?.data?.message || "Lỗi khi xóa sách.");
     }
   };
 
@@ -136,6 +136,26 @@ export default function BookManagement() {
   };
 
   const columns = [
+    {
+      title: "Hình Ảnh",
+      dataIndex: "thumbnail",
+      key: "thumbnail",
+      render: (thumbnail) => (
+        <img
+          src={
+            thumbnail || "https://i.pinimg.com/originals/66/8a/8c/668a8cccacc792924fa588b4adca8f68.gif"
+          }
+          alt="Book Thumbnail"
+          style={{
+            width: "50px",
+            height: "50px",
+            objectFit: "cover",
+            borderRadius: "5px",
+            boxShadow: "0 0 5px rgba(0,0,0,0.1)",
+          }}
+        />
+      ),
+    },
     {
       title: "Tên Sách",
       dataIndex: "title",

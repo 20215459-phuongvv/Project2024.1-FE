@@ -46,7 +46,7 @@ export default function HeaderLinks(props) {
       setNotifications(data);
     } catch (error) {
       console.error("Error fetching notifications:", error);
-      message.error("Không thể tải thông báo");
+      message.error(error.response?.data?.message || "Không thể tải thông báo");
     }
     setLoading(false);
   };
@@ -68,7 +68,7 @@ export default function HeaderLinks(props) {
       message.success("Đã đánh dấu là đã đọc");
     } catch (error) {
       console.error("Error marking notification as read:", error);
-      message.error("Không thể đánh dấu là đã đọc");
+      message.error(error.response?.data?.message || "Error marking notification as read");
     }
   };
 

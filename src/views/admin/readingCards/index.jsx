@@ -80,7 +80,7 @@ export default function ReadingCardManagement() {
       message.success("Cảnh báo thẻ đọc thành công");
       fetchReadingCards();
     } catch (error) {
-      message.error("Lỗi khi cảnh báo thẻ đọc");
+      message.error(error.response?.data?.message || "Lỗi khi cảnh báo thẻ đọc");
     }
   };
 
@@ -90,7 +90,7 @@ export default function ReadingCardManagement() {
       message.success("Cấm thẻ đọc thành công");
       fetchReadingCards();
     } catch (error) {
-      message.error("Lỗi khi cấm thẻ đọc");
+      message.error(error.response?.data?.message || "Lỗi khi cấm thẻ đọc");
     }
   };
 
@@ -100,7 +100,7 @@ export default function ReadingCardManagement() {
       message.success("Mở khóa thẻ đọc thành công");
       fetchReadingCards();
     } catch (error) {
-      message.error("Lỗi khi mở khóa thẻ đọc");
+      message.error(error.response?.data?.message || "Lỗi khi mở khóa thẻ đọc");
     }
   };
 
